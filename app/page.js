@@ -13,10 +13,12 @@ const Home = () => {
       const map = new Map(document.getElementById('map'), { // Crea un nuevo mapa en el div con id 'map'
         center: center, // Centra el mapa en Buenos Aires
         zoom: 14, // Nivel de zoom del mapa
+        mapId: 'YOUR_MAP_ID', // Reemplaza 'YOUR_MAP_ID' con tu Map ID válido
       });
 
       const service = new PlacesService(map); // Crea un nuevo servicio de Places asociado al mapa
       let markers = []; // Arreglo para almacenar los marcadores
+      let currentInfoWindow = null; // Variable para almacenar el InfoWindow actualmente abierto
 
       const clearMarkers = () => { // Función para limpiar los marcadores del mapa
         markers.forEach(marker => marker.setMap(null)); // Elimina cada marcador del mapa
@@ -34,11 +36,17 @@ const Home = () => {
           if (status === PlacesServiceStatus.OK && results) { // Verifica si la búsqueda fue exitosa y hay resultados
             clearMarkers(); // Limpia los marcadores actuales
             results.forEach((place) => { // Itera sobre los resultados de la búsqueda
-              const marker = new google.maps.Marker({ // Crea un nuevo marcador para cada lugar
+              const marker = new google.maps.Marker({ // Crea un nuevo marcador con google.maps.Marker
                 map: map, // Asocia el marcador al mapa
                 position: place.geometry.location, // Establece la posición del marcador
                 title: place.name, // Título del marcador
+                icon: { // Define un ícono personalizado para el marcador
+                  url: 'https://cdn-icons-png.flaticon.com/512/924/924514.png', // URL del ícono (puedes cambiar el color aquí)
+                  scaledSize: new google.maps.Size(32, 32),
+                  className: "icons-food-drink" // Tamaño del ícono
+                },
               });
+
               // Contenido del InfoWindow (popup)
               const infoWindowContent = ` 
                 <div class="custom-info-window">
@@ -52,11 +60,15 @@ const Home = () => {
               });
 
               marker.addListener('click', () => { // Añade un evento de clic al marcador
-                infoWindow.open({ // Abre el InfoWindow cuando se hace clic en el marcador
+                if (currentInfoWindow) { // Si hay un InfoWindow abierto, ciérralo
+                  currentInfoWindow.close();
+                }
+                infoWindow.open({ // Abre el nuevo InfoWindow cuando se hace clic en el marcador
                   anchor: marker, // Asocia el InfoWindow al marcador
                   map, // Asocia el InfoWindow al mapa
                   shouldFocus: false, // No enfocar el InfoWindow
                 });
+                currentInfoWindow = infoWindow; // Actualiza la referencia al InfoWindow abierto
               });
 
               markers.push(marker); // Añade el marcador al arreglo de marcadores
@@ -91,7 +103,7 @@ const Home = () => {
         src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`} // URL del script de Google Maps con la clave de API y las bibliotecas necesarias
       />
       <div id="map" style={{ height: '100vh', width: '100%' }} /> {/* Div para contener el mapa */}
-
+      
     </>
   );
 };
