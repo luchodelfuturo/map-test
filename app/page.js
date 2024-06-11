@@ -1,113 +1,99 @@
-import Image from "next/image";
+// app/page.js
+'use client'; // Indica que este archivo se ejecuta en el lado del cliente
+import React, { useEffect } from 'react'; // Importa React y el hook useEffect
+import Script from 'next/script'; // Importa el componente Script de Next.js para cargar scripts externos
 
-export default function Home() {
+const Home = () => {
+  useEffect(() => { // useEffect se ejecuta cuando el componente se monta
+    const initMap = async () => { // Función asincrónica para inicializar el mapa
+      const { Map, InfoWindow } = await google.maps.importLibrary('maps'); // Importa las librerías de mapas e InfoWindow de Google Maps
+      const { PlacesService, PlacesServiceStatus } = await google.maps.importLibrary('places'); // Importa las librerías de PlacesService y PlacesServiceStatus de Google Places
+
+      const center = new google.maps.LatLng(-34.6037, -58.3816); // Coordenadas de Buenos Aires
+      const map = new Map(document.getElementById('map'), { // Crea un nuevo mapa en el div con id 'map'
+        center: center, // Centra el mapa en Buenos Aires
+        zoom: 14, // Nivel de zoom del mapa
+      });
+
+      const service = new PlacesService(map); // Crea un nuevo servicio de Places asociado al mapa
+      let markers = []; // Arreglo para almacenar los marcadores
+
+      const clearMarkers = () => { // Función para limpiar los marcadores del mapa
+        markers.forEach(marker => marker.setMap(null)); // Elimina cada marcador del mapa
+        markers = []; // Vacía el arreglo de marcadores
+      };
+
+      const performSearch = () => { // Función para realizar la búsqueda de lugares
+        const bounds = map.getBounds(); // Obtiene los límites actuales del mapa
+        const request = { // Crea una solicitud de búsqueda
+          bounds: bounds, // Utiliza los límites del mapa como área de búsqueda
+          type: 'cafe', // Tipo de lugar a buscar (cafeterías)
+        };
+
+        service.nearbySearch(request, (results, status) => { // Realiza la búsqueda de lugares cercanos
+          if (status === PlacesServiceStatus.OK && results) { // Verifica si la búsqueda fue exitosa y hay resultados
+            clearMarkers(); // Limpia los marcadores actuales
+            results.forEach((place) => { // Itera sobre los resultados de la búsqueda
+              const marker = new google.maps.Marker({ // Crea un nuevo marcador para cada lugar
+                map: map, // Asocia el marcador al mapa
+                position: place.geometry.location, // Establece la posición del marcador
+                title: place.name, // Título del marcador
+              });
+              // Contenido del InfoWindow (popup)
+              const infoWindowContent = ` 
+                <div class="custom-info-window">
+                  <h3>${place.name || "hola"}</h3>
+                  <p>${place.vicinity}</p>
+                </div>
+              `;
+
+              const infoWindow = new InfoWindow({ // Crea un nuevo InfoWindow
+                content: infoWindowContent, // Establece el contenido del InfoWindow
+              });
+
+              marker.addListener('click', () => { // Añade un evento de clic al marcador
+                infoWindow.open({ // Abre el InfoWindow cuando se hace clic en el marcador
+                  anchor: marker, // Asocia el InfoWindow al marcador
+                  map, // Asocia el InfoWindow al mapa
+                  shouldFocus: false, // No enfocar el InfoWindow
+                });
+              });
+
+              markers.push(marker); // Añade el marcador al arreglo de marcadores
+            });
+          } else { // Si no hay resultados o la búsqueda falla
+            console.log('No results'); // Muestra un mensaje en la consola
+          }
+        });
+      };
+
+      // Añade un botón de búsqueda al mapa
+      const searchButton = document.createElement('button'); // Crea un nuevo botón
+      searchButton.textContent = 'Buscar en esta Área'; // Establece el texto del botón
+      searchButton.classList.add('search-button'); // Añade una clase al botón para estilos
+      searchButton.addEventListener('click', performSearch); // Añade un evento de clic al botón que llama a performSearch
+
+      map.controls[google.maps.ControlPosition.TOP_CENTER].push(searchButton); // Añade el botón a los controles del mapa en la posición superior central
+
+      // Realiza una búsqueda inicial al cargar el mapa
+      performSearch(); // Llama a performSearch para realizar una búsqueda inicial
+    };
+
+    if (typeof window !== 'undefined') { // Verifica si el código se está ejecutando en el cliente
+      initMap(); // Inicializa el mapa
+    }
+  }, []); // El array vacío [] asegura que el efecto solo se ejecute una vez al montar el componente
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <>
+      <Script
+        strategy="beforeInteractive" // Carga el script antes de que el resto del contenido interactivo de la página se cargue
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`} // URL del script de Google Maps con la clave de API y las bibliotecas necesarias
+      />
+      <div id="map" style={{ height: '100vh', width: '100%' }} /> {/* Div para contener el mapa */}
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </>
   );
-}
+};
+
+export default Home; // Exporta el componente Home como el componente por defecto
