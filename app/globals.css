@@ -31,3 +31,46 @@
   margin: 10px;
   padding: 10px;
 }
+
+/* Estilos personalizados para los controles de Google Maps */
+.gm-style .gm-bundled-control .gmnoprint,
+.gm-style .gm-bundled-control .gm-svpc,
+.gm-style .gm-bundled-control .gm-fullscreen-control,
+.gm-style .gm-bundled-control .gm-style-i {
+  background-color: #333 !important; /* Cambiar el color de fondo */
+  color: #fff !important; /* Cambiar el color del texto */
+  border: 2px solid #fff !important; /* Cambiar el color del borde */
+  border-radius: 5px !important; /* Hacer los bordes redondeados */
+  font-family: "Montserrat", sans-serif !important; /* Aplicar la fuente Montserrat */
+}
+
+/* Estilos específicos para el botón de tipo de mapa (Mapa/Satélite) */
+.gm-style .gm-style-mtc button {
+  background-color: #0cb299 !important; /* Cambiar el color de fondo */
+  color: #590606 !important; /* Cambiar el color del texto */
+  border: 2px solid #fff !important; /* Cambiar el color del borde */
+  border-radius: 5px !important; /* Hacer los bordes redondeados */
+  font-family: "Montserrat", sans-serif !important; /* Aplicar la fuente Montserrat */
+}
+.gm-style .gm-style-mtc button:hover {
+  background-color: #6c8884 !important; /* Cambiar el color de fondo */
+  /* Aplicar la fuente Montserrat */
+}
+
+/* Estilos específicos para el botón de pantalla completa */
+.gm-style .gm-fullscreen-control {
+  background-color: #555 !important; /* Cambiar el color de fondo */
+  color: #fff !important; /* Cambiar el color del texto */
+  border: 2px solid #fff !important; /* Cambiar el color del borde */
+  border-radius: 5px !important; /* Hacer los bordes redondeados */
+  font-family: "Montserrat", sans-serif !important; /* Aplicar la fuente Montserrat */
+}
+
+/* Estilos específicos para los botones de zoom */
+.gm-style .gm-control-active.gm-control-active {
+  background-color: #666 !important; /* Cambiar el color de fondo */
+  color: #fff !important; /* Cambiar el color del texto */
+  border: 2px solid #fff !important; /* Cambiar el color del borde */
+  border-radius: 5px !important; /* Hacer los bordes redondeados */
+  font-family: "Montserrat", sans-serif !important; /* Aplicar la fuente Montserrat */
+}
